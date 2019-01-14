@@ -1,0 +1,50 @@
+.fz-05rem {
+  font-size: .5rem;
+}
+
+.fz-06rem {
+  font-size: .6rem;
+}
+
+.fz-07rem {
+  font-size: .7rem;
+}
+
+.fz-08rem {
+  font-size: .8rem;
+}
+
+.fz-09rem {
+  font-size: .9rem;
+}
+
+.fz-11rem {
+  font-size: 1.1rem;
+}
+
+.fz-12rem {
+  font-size: 1.2rem;
+}
+
+.fz-13rem {
+  font-size: 1.3rem;
+}
+
+.fz-14rem {
+  font-size: 1.4rem;
+}
+
+.fz-15rem {
+  font-size: 1.5rem;
+}
+
+ul, li {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notouch {
+  pointer-events: none;
+  opacity: .5;
+}

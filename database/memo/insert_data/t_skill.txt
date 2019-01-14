@@ -1,0 +1,24 @@
+スキルテーブル
+スキル一覧
+$m_skill_names = ['C', 'C++', 'C#', 'Java', 'JavaScript', 'php', 'Python', 'Ruby'];
+$m_skill_namesの長さ分ループを回して、1-7の配列を作る。($m_skill_ids)
+
+$detaile_info = 'サンプル詳細情報です。';
+$sales_note = 'サンプル営業メモです。';
+
+2-4年　ランダム
+(スキル)アイテム作成
+for emp_id (1 to 4)
+	//1社員につき３スキルを付ける。そのための、スキルids作成
+ $m_skill_idsをシャッフル
+ ループで3回回す。そのkeyを$m_skill_idsのidxにする。(これでランダムな3idが取得出来る。)
+$t_skills = [
+	'emp_id' => $emp_id,
+	'm_skill_id' => $m_skill_id,
+	'exp_year' => rand(2,4),
+	'self_evaluate' => rand(1, 5),
+	'ext_evaluate' => rand(1, 5),
+	'detaile_info' => $detaile_info,
+	'sales_note' => $sales_note,
+];
+

@@ -1,0 +1,18 @@
+社員番号とパスワードでログインする。
+
+■ログインボタン押下から
+社員番号が未入力です。emp_no
+パスワードが未入力です。password
+htmlとjsとphpの両方でチェックする。
+ログインボタン押下時、if(emp_no === '' || password === '')
+ERR_MSG = NO_EMP_NO, NO_PW
+try catch
+emp_no === '' throw new Error('社員番号が入力されていません。');
+emp_no === '' throw new Error('パスワードが入力されていません。');
+
+エラーメッセージは、それぞれの入力欄の上に表示。入力フォームの枠線を赤くする。
+(todo: 一先ず、html.requiredで対応)
+
+✔ひとまず、ログイン成功で、console.log('login success')と表示するまで。
+
+管理者権限のある社員でログインする。社員一覧画面に遷移。

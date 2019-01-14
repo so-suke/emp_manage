@@ -1,0 +1,23 @@
+$one_month_before_today_fmt = Carbon::now()->subMonth()->format('Y-m-d');
+
+斎藤隆(40歳)
+宇田川 巧(25歳)
+松本 由佳(23歳)
+広瀬 みお(28歳)
+
+[
+	'is_admin' => true,
+	'name_sei' => '齊藤',
+	'name_mei' => '隆',
+	'name_sei_kana' => 'さいとう',
+	'name_mei_kana' => 'たかし',
+	'password' => '1000',
+	'm_dept_id' => 1,
+	'm_job_id' => 1,
+	'gender' => 'male',
+	'hired_at' => $one_month_before_today_fmt,
+	'age' => 40,
+	'birth_at' => $one_month_before_today_fmt,
+	'remarks' => $remarks,
+	'is_deleted' => $is_deleted,
+]

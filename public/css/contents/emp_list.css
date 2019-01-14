@@ -1,0 +1,53 @@
+/* .emp_list_wrap {
+  max-height: 100px;
+  overflow-y: auto;
+} */
+
+.table-fixed {
+  width: 100%;
+  background-color: #f3f3f3;
+}
+
+.table-fixed thead {
+  padding-right: 15px;
+}
+
+.table-fixed thead th {
+  height: 50px;
+  line-height: 100%;
+}
+
+.table-fixed tbody {
+  height: 150px;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+.table-fixed thead,
+.table-fixed tbody {
+  display: block;
+}
+
+.table-fixed tr {
+  display: flex;
+}
+
+.table-fixed td {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.table-fixed th {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.table-fixed tbody td {
+  float: left;
+}
+
+.table-fixed thead tr th {
+  float: left;
+}
