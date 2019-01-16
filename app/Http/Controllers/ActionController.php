@@ -9,19 +9,26 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Log;
 
 class ActionController extends Controller {
 
-	public function logout(Request $request) {
-		$request->session()->flush();
+  public $_request;
 
-		return redirect()->route('login');
-	}
+  public function __construct(Request $request) {
+    $this->_request = $request;
+  }
+
+  public function logout() {
+    $this->_request->session()->flush();
+
+    return redirect()->route('login');
+  }
 
   //ログイン時の認証
-  public function login(Request $request) {
-    $emp_no = $request->emp_no;
-    $password = $request->password;
+  public function login() {
+    $emp_no = $this->_request->emp_no;
+    $password = $this->_request->password;
 
     //ログイン入力項目から該当社員が存在するかどうか判断。
     $employee_obj = Employee::where('emp_no', $emp_no)
@@ -35,7 +42,7 @@ class ActionController extends Controller {
       //ログイン社員取得
       $login_employee = $employee_obj->first();
       //ログイン社員をセッションに保存
-      $request->session()->put('login_employee', $login_employee);
+      $this->_request->session()->put('login_employee', $login_employee);
     } catch (Exception $e) {
       $err_msg = $e->getMessage();
       return view('contents.login', [
@@ -43,18 +50,18 @@ class ActionController extends Controller {
       ]);
     }
 
-    if ($login_employee->is_admin === '1') {
+    if ((int) $login_employee->is_admin === 1) {
       //もし管理者の場合
       return redirect()->route('employee_list');
     } else {
       //todo 一般社員の場合、社員詳細画面に遷移させる。
-			dd('一般社員の場合についての処理は、また未作成となっています。');
+      dd('一般社員の場合についての処理は、また未作成となっています。');
     }
   }
 
   //メニュー画面へ遷移させる。
-  public function toMenu(Request $request) {
-    $login_employee = $request->session()->get('login_employee');
+  public function toMenu() {
+    $login_employee = $this->_request->session()->get('login_employee');
     return view('contents.menu', [
       'display_name' => 'メニュー',
       'login_employee' => $login_employee,
@@ -62,8 +69,8 @@ class ActionController extends Controller {
   }
 
   //社員一覧画面へ遷移させる。
-  public function toEmployeeList(Request $request) {
-    $login_employee = $request->session()->get('login_employee');
+  public function toEmployeeList() {
+    $login_employee = $this->_request->session()->get('login_employee');
     return view('contents.employee_list', [
       'display_name' => '社員一覧',
       'login_employee' => $login_employee,
@@ -84,12 +91,12 @@ class ActionController extends Controller {
   }
 
   //【社員一覧画面】社員一覧情報を取得します。(社員名絞り込み条件を考慮しています。)
-  public function ajaxGetEmployees(Request $request) {
+  public function ajaxGetEmployees() {
     $employees = [];
-    $has_filter_name_sei = $request->session()->has('filter_name_sei');
-    $has_filter_name_mei = $request->session()->has('filter_name_mei');
-    $filter_name_sei = $request->session()->get('filter_name_sei');
-    $filter_name_mei = $request->session()->get('filter_name_mei');
+    $has_filter_name_sei = $this->_request->session()->has('filter_name_sei');
+    $has_filter_name_mei = $this->_request->session()->has('filter_name_mei');
+    $filter_name_sei = $this->_request->session()->get('filter_name_sei');
+    $filter_name_mei = $this->_request->session()->get('filter_name_mei');
 
     if ($has_filter_name_sei !== true && $has_filter_name_mei !== true) {
       //絞り込み条件が設定されていない場合です。全社員情報取得となります。
@@ -133,8 +140,8 @@ class ActionController extends Controller {
   }
 
   //(社員一覧画面)社員番号から検索された社員情報を削除するため。
-  public function ajaxDeleteEmployeeByEmpNo(Request $request) {
-    $employee = Employee::where('emp_no', $request->will_delete_emp_no)
+  public function ajaxDeleteEmployeeByEmpNo() {
+    $employee = Employee::where('emp_no', $this->_request->will_delete_emp_no)
       ->first();
 
     $employee->is_deleted = true;
@@ -147,12 +154,12 @@ class ActionController extends Controller {
 
   //【社員一覧画面】社員名の絞り込みに使用する、絞り込み条件の保存をします。
   // 絞り込み条件は、後で、社員一覧情報の取得時に使用します。
-  public function ajaxSaveNameFilterVal(Request $request) {
-    $name_sei = $request->name_sei;
-    $name_mei = $request->name_mei;
+  public function ajaxSaveNameFilterVal() {
+    $name_sei = $this->_request->name_sei;
+    $name_mei = $this->_request->name_mei;
 
-    $request->session()->put('filter_name_sei', $name_sei);
-    $request->session()->put('filter_name_mei', $name_mei);
+    $this->_request->session()->put('filter_name_sei', $name_sei);
+    $this->_request->session()->put('filter_name_mei', $name_mei);
 
     return response()->json([
       'result' => 'success',
@@ -160,8 +167,8 @@ class ActionController extends Controller {
   }
 
   // 社員新規登録画面へ遷移させる。
-  public function toRegistNewEmployee(Request $request) {
-    $login_employee = $request->session()->get('login_employee');
+  public function toRegistNewEmployee() {
+    $login_employee = $this->_request->session()->get('login_employee');
     $m_deps = mDepartments::get();
     $m_jobs = mJobs::get();
     return view('contents.regist_new_employee', [
@@ -173,10 +180,10 @@ class ActionController extends Controller {
   }
 
   //(社員新規登録画面)社員新規登録関数,
-  public function registNewEmployee(Request $request) {
-		// (TODO: バリデーションのエラーメッセージがlaravelデフォルトのままなので後で作ります。)
-		//バリデーション。requiredは、空欄不可の意味。分かりにくいと思う所には、コメントしております。
-    $validatedData = $request->validate([
+  public function registNewEmployee() {
+    // (TODO: バリデーションのエラーメッセージがlaravelデフォルトのままなので後で作ります。)
+    //バリデーション。requiredは、空欄不可の意味。分かりにくいと思う所には、コメントしております。
+    $validatedData = $this->_request->validate([
       'emp_no' => 'required|unique:employees|gt:0', //社員番号->重複不可
       'name_sei' => 'required|max:5',
       'name_mei' => 'required|max:9',
@@ -194,40 +201,88 @@ class ActionController extends Controller {
     ]);
 
     $emp = new Employee;
-    $emp->emp_no = $request->emp_no;
-    $emp->is_admin = $request->is_admin === null ? 0 : 1;
-    $emp->name_sei = $request->name_sei;
-    $emp->name_mei = $request->name_mei;
-    $emp->name_sei_kana = $request->name_sei_kana;
-    $emp->name_mei_kana = $request->name_mei_kana;
-    $emp->password = $request->pw;
-    $emp->m_dept_id = $request->select_dept_id;
-    $emp->m_job_id = $request->select_job_id;
-    $emp->gender = $request->choose_gender;
-    $emp->hired_at = $request->hired_at;
-    $emp->birth_at = $request->birth_at;
-    $emp->remarks = $request->remarks;
+    $emp->emp_no = $this->_request->emp_no;
+    $emp->is_admin = $this->_request->is_admin === null ? 0 : 1;
+    $emp->name_sei = $this->_request->name_sei;
+    $emp->name_mei = $this->_request->name_mei;
+    $emp->name_sei_kana = $this->_request->name_sei_kana;
+    $emp->name_mei_kana = $this->_request->name_mei_kana;
+    $emp->password = $this->_request->pw;
+    $emp->m_dept_id = $this->_request->select_dept_id;
+    $emp->m_job_id = $this->_request->select_job_id;
+    $emp->gender = $this->_request->choose_gender;
+    $emp->hired_at = $this->_request->hired_at;
+    $emp->birth_at = $this->_request->birth_at;
+    $emp->remarks = $this->_request->remarks;
     $emp->is_deleted = 0; //初期の削除フラグは偽
     $emp->save();
 
-    $login_employee = $request->session()->get('login_employee');
-    return view('contents.regist_new_employee', [
-      'display_name' => '社員新規登録',
-      'login_employee' => $login_employee,
-    ]);
+    $login_employee = $this->_request->session()->get('login_employee');
+
+    return redirect()->route('regist_new_employee');
+  }
+
+  //(社員新規登録画面)社員新規登録関数,Ajax版
+  public function ajaxRegistNewEmployee() {
+    try {
+      $validatedData = $this->_request->validate([
+        'emp_no' => 'required|unique:employees|gt:0', //社員番号->重複不可
+        'name_sei' => 'required|max:5',
+        'name_mei' => 'required|max:9',
+        'name_sei_kana' => 'required|regex:/^[ぁ-ゞ]+$/u|max:8', //名前(姓)かな->ひらがなのみ
+        'name_mei_kana' => 'required|max:19',
+        'pw' => 'required|min:4|numeric|unique:employees,password', //パスワード->重複不可
+        'select_dept_id' => 'required|exists:m_departments,id', //選択された部署id->DB内に存在しているかどうか。
+        'select_job_id' => 'required|exists:m_jobs,id', //選択された役職id->DB内に存在しているかどうか。
+        'choose_gender' => 'required',
+        'hired_at' => 'required',
+        'birth_at' => 'required',
+        'remarks' => '',
+      ], [
+        'name_sei_kana.regex' => 'Please enter your employee name (Kana) in Kana.',
+      ]);
+
+      $emp = new Employee;
+      $emp->emp_no = $this->_request->emp_no;
+      $emp->is_admin = $this->_request->is_admin === null ? 0 : 1;
+      $emp->name_sei = $this->_request->name_sei;
+      $emp->name_mei = $this->_request->name_mei;
+      $emp->name_sei_kana = $this->_request->name_sei_kana;
+      $emp->name_mei_kana = $this->_request->name_mei_kana;
+      $emp->password = $this->_request->pw;
+      $emp->m_dept_id = $this->_request->select_dept_id;
+      $emp->m_job_id = $this->_request->select_job_id;
+      $emp->gender = $this->_request->choose_gender;
+      $emp->hired_at = $this->_request->hired_at;
+      $emp->birth_at = $this->_request->birth_at;
+      $emp->remarks = $this->_request->remarks;
+      $emp->is_deleted = 0; //初期の削除フラグは偽
+      $emp->save();
+
+      $login_employee = $this->_request->session()->get('login_employee');
+
+      return response()->json([
+        'status' => 'success',
+      ]);
+    } catch (Exception $exception) {
+      return response()->json([
+        'status' => 'err',
+        'errs' => $exception->errors(),
+      ]);
+    }
   }
 
   //スキル一覧画面へ遷移させる。
-  public function toSkillList(Request $request) {
-    $login_employee = $request->session()->get('login_employee');
+  public function toSkillList() {
+    $login_employee = $this->_request->session()->get('login_employee');
     return view('contents.skill_list', [
       'display_name' => 'スキル一覧',
       'login_employee' => $login_employee,
     ]);
   }
 
-  public function updateEmpInfo(Request $request) {
-    $validatedData = $request->validate([
+  public function updateEmpInfo() {
+    $validatedData = $this->_request->validate([
       'emp_no' => [
         'required',
         Rule::unique('employees')->ignore($request->emp_no, 'emp_no'),
@@ -254,18 +309,18 @@ class ActionController extends Controller {
     ]);
 
     $emp = Employee::find($request->emp_no);
-    $emp->is_admin = $request->is_admin === null ? 0 : 1;
-    $emp->name_sei = $request->name_sei;
-    $emp->name_mei = $request->name_mei;
-    $emp->name_sei_kana = $request->name_sei_kana;
-    $emp->name_mei_kana = $request->name_mei_kana;
-    $emp->password = $request->pw;
-    $emp->m_dept_id = $request->select_dept_id;
-    $emp->m_job_id = $request->select_job_id;
-    $emp->gender = $request->choose_gender;
-    $emp->hired_at = $request->hired_at;
-    $emp->birth_at = $request->birth_at;
-    $emp->remarks = $request->remarks;
+    $emp->is_admin = $this->_request->is_admin === null ? 0 : 1;
+    $emp->name_sei = $this->_request->name_sei;
+    $emp->name_mei = $this->_request->name_mei;
+    $emp->name_sei_kana = $this->_request->name_sei_kana;
+    $emp->name_mei_kana = $this->_request->name_mei_kana;
+    $emp->password = $this->_request->pw;
+    $emp->m_dept_id = $this->_request->select_dept_id;
+    $emp->m_job_id = $this->_request->select_job_id;
+    $emp->gender = $this->_request->choose_gender;
+    $emp->hired_at = $this->_request->hired_at;
+    $emp->birth_at = $this->_request->birth_at;
+    $emp->remarks = $this->_request->remarks;
     $emp->is_deleted = 0; //初期の削除フラグは偽
     $emp->save();
 
@@ -273,10 +328,10 @@ class ActionController extends Controller {
   }
 
   // 社員情報更新画面へ遷移させる。
-  public function toUpdateEmpInfo(Request $request, $emp_no = null) {
+  public function toUpdateEmpInfo($emp_no = null) {
     //社員詳細画面から遷移してくる時は、社員番号が渡されてくる。更新対象の社員情報を画面に渡す。
     //メニュー画面から遷移してくる時は、社員番号が渡されない。更新対象の社員をユーザーに画面内で選択してもらいます。
-    $will_update_emp_no = $request->emp_no;
+    $will_update_emp_no = $this->_request->emp_no;
     $detail_emp = null; //画面に表示する社員情報
     if ($will_update_emp_no !== null) {
       $detail_emp = Employee::select(DB::raw("e.emp_no, e.is_admin, e.name_sei, e.name_mei, e.name_sei_kana, e.name_mei_kana, e.password, e.gender, e.hired_at, e.birth_at, e.remarks, e.m_dept_id, e.m_job_id, md.name as 'dept_name', mj.name as 'job_name'"))
@@ -293,7 +348,7 @@ class ActionController extends Controller {
     $jobs = mJobs::select('id', 'name')
       ->get();
 
-    $login_employee = $request->session()->get('login_employee');
+    $login_employee = $this->_request->session()->get('login_employee');
     return view('contents.update_emp_info', [
       'display_name' => '社員情報更新',
       'login_employee' => $login_employee,
@@ -305,8 +360,8 @@ class ActionController extends Controller {
   }
 
   //(社員情報更新画面)社員番号から検索された社員情報を表示するため。
-  public function ajaxGetEmpInfoByEmpNo(Request $request) {
-    $emp_no = $request->emp_no;
+  public function ajaxGetEmpInfoByEmpNo() {
+    $emp_no = $this->_request->emp_no;
     $employee = Employee::select(DB::raw("e.emp_no, e.is_admin, e.name_sei, e.name_mei, e.name_sei_kana, e.name_mei_kana, md.name as 'dept_name', mj.name as 'job_name'"))
       ->from(DB::raw("(select emp_no, is_admin, name_sei, name_mei, name_sei_kana, name_mei_kana, m_dept_id, m_job_id
 					from employees
@@ -320,8 +375,8 @@ class ActionController extends Controller {
   }
 
   //社員詳細画面へ遷移させる。
-  public function toEmployeeDetail(Request $request) {
-    $emp_no = $request->emp_no;
+  public function toEmployeeDetail() {
+    $emp_no = $this->_request->emp_no;
 
     //所属部署と役職を付属させた、社員情報を取得。
     $detail_emp = Employee::select(DB::raw("e.emp_no, e.is_admin, e.name_sei, e.name_mei, e.name_sei_kana, e.name_mei_kana, e.password, e.gender, e.hired_at, e.birth_at, e.remarks, md.name as 'dept_name', mj.name as 'job_name'"))
@@ -332,7 +387,7 @@ class ActionController extends Controller {
       ->join('m_jobs as mj', 'e.m_job_id', '=', 'mj.id')
       ->first();
 
-    $login_employee = $request->session()->get('login_employee');
+    $login_employee = $this->_request->session()->get('login_employee');
     return view('contents.employee_detail', [
       'display_name' => '社員詳細',
       'login_employee' => $login_employee,
@@ -342,9 +397,9 @@ class ActionController extends Controller {
   }
 
   //(未完成)
-  public function ajaxGetWithSkillEmployees(Request $request) {
+  public function ajaxGetWithSkillEmployees() {
     $employees = [];
-    $skill_keyword = $request->skill_keyword;
+    $skill_keyword = $this->_request->skill_keyword;
 
     Employee::select(DB::raw("e.emp_no, e.is_admin, e.name_sei, e.name_mei, e.name_sei_kana, e.name_mei_kana, md.name as 'dept_name', mj.name as 'job_name'"))
       ->from(DB::raw("(select emp_no, is_admin, name_sei, name_mei, name_sei_kana, name_mei_kana, m_dept_id, m_job_id
@@ -361,7 +416,7 @@ class ActionController extends Controller {
   }
 
   //全スキル情報を取得します。
-  public function ajaxGetSkills(Request $request) {
+  public function ajaxGetSkills() {
     $skills = mSkills::select('id', 'keyword')->get();
 
     return response()->json([

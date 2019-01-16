@@ -29,3 +29,4 @@ Route::post('/ajax_q/get_employee_by_emp_no', 'ActionController@ajaxGetEmpInfoBy
 Route::post('/ajax_q/delete_employee_by_emp_no', 'ActionController@ajaxDeleteEmployeeByEmpNo');
 Route::post('/ajax_q/save_name_filter_val', 'ActionController@ajaxSaveNameFilterVal');
 Route::post('/ajax_q/get_skills', 'ActionController@ajaxGetSkills');
+Route::post('/ajax_q/regist_new_employee', 'ActionController@ajaxRegistNewEmployee');
